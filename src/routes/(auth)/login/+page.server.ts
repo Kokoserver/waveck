@@ -1,18 +1,27 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 import { message } from 'sveltekit-superforms';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { login } from '$lib/validators/user';
 import { db } from '$lib/db/index.js';
-import bcrypt from 'bcrypt';
 import type { User } from '$lib/db/models/user.model';
-export const load = async () => {
+import {
+	generateToken,
+	setToken,
+	validateUser,
+	verifyPassword
+} from '$lib/utils';
+
+export const load = async ({ cookies }) => {
+	if (validateUser(cookies)) {
+		redirect(302, '/');
+	}
 	const form = await superValidate(zod(login));
 	return { form };
 };
 
 export const actions = {
-	async default({ request }) {
+	async default({ request, cookies }) {
 		const form = await superValidate(request, zod(login));
 		if (!form.valid) {
 			return fail(400, { form });
@@ -24,19 +33,24 @@ export const actions = {
 				.where('email', '=', form.data.email)
 				.executeTakeFirst()) as User;
 			if (!user) {
-				return message(form, 'invalid email or password');
+				return message(form, 'Invalid email or password');
 			}
-			const isValid = await bcrypt.compare(user.password, form.data.password);
+
+			const isValid = await verifyPassword(user.password, form.data.password);
 			if (!isValid) {
-				return message(form, 'invalid email or password');
+				return message(form, 'Invalid email or password');
 			} else {
-				// Todo: log user in
-				return message(form, 'If email exist a password reset link should be shown in your email');
+				const token = generateToken(user.id);
+				setToken(cookies, token);
+				return message(
+					form,
+					'If email exist a password reset link should be shown in your email'
+				);
 			}
 		} catch (error) {
-			console.log(error);
+			const { message } = error as { message: string | null };
 			fail(500, {
-				message: 'Error resetting password'
+				message: message || 'Error resetting password'
 			});
 		}
 	}

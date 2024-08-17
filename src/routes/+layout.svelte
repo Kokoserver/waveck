@@ -1,5 +1,11 @@
-<script >
+<script>
+	import { Toaster } from 'svelte-french-toast';
+	import Footer from '$lib/components/layout/Footer.svelte';
+	import Navbar from '$lib/components/layout/Navbar.svelte';
 	import '../app.css';
 </script>
 
-<slot></slot>
+<Toaster />
+<Navbar />
+<slot />
+<Footer />
