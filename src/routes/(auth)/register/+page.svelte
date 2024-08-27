@@ -6,6 +6,7 @@
 	import FormLabel from '$lib/components/form/FormLabel.svelte';
 	import FormInput from '$lib/components/form/FormInput.svelte';
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
 
 	export let data: PageData;
 	const { form, errors, enhance, submitting } = superForm(data.form, {
@@ -15,7 +16,9 @@
 					position: 'top-right',
 					duration: 2000
 				});
-				await goto('/login');
+				if (browser) {
+					await goto('/login');
+				}
 			}
 		}
 	});
@@ -80,7 +83,7 @@
 				<FormControl formControlClass="mt-6">
 					<button class="btn btn-primary {$submitting ? 'btn-disabled' : ''}">
 						{#if $submitting}
-							<span class="loading loading-spinner"></span>
+							<span class="loading loading-spinner">registering</span>
 						{:else}
 							Register
 						{/if}

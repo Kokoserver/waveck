@@ -7,5 +7,7 @@
 
 <Toaster />
 <Navbar />
-<slot />
+<main class="grid grid-rows-[auto_1fr_auto]">
+	<slot />
+</main>
 <Footer />

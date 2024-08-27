@@ -9,7 +9,6 @@ import { transporter } from '$lib/mailer/setup';
 import { verificationMailTemplate } from '$lib/mailer/sender.js';
 
 export const load = async () => {
-	// Form is populated, so errors will be set if validation fails
 	const form = await superValidate(zod(userRegistrationValidator));
 	return { form };
 };
@@ -39,7 +38,7 @@ export const actions = {
 					last_name: form.data.last_name,
 					email: form.data.email,
 					user_type: 'user',
-					is_active: true,
+					is_active: false,
 					password: hashedPassword
 				})
 				.returning(['id', 'email', 'first_name'])
@@ -48,7 +47,12 @@ export const actions = {
 				return fail(500, { message: 'Failed to create account' });
 			}
 
-			const token = generateToken(new_user.id);
+			const token = generateToken(
+				{ id: new_user.id },
+				{
+					expiresIn: '10d'
+				}
+			);
 			const to_url = `${url.host}/verify/token=${token}`;
 			await transporter.sendMail({
 				...{

@@ -8,15 +8,23 @@
 	import { goto } from '$app/navigation';
 
 	export let data: PageData;
-	const { form, errors, enhance, submitting } = superForm(data.form, {
+	const { form, errors, enhance, submitting, message } = superForm(data.form, {
 		onResult: async ({ result }) => {
+			console.log(result);
 			if (result.type == 'success') {
-				toast.success('Registration successful!', {
+				toast.success(result?.data?.message || 'login successful', {
 					position: 'top-right',
 					duration: 2000
 				});
 				await goto('/login');
 			}
+		},
+		onError: () => {
+			console.log('message');
+			toast.error($message, {
+				position: 'top-right',
+				duration: 2000
+			});
 		}
 	});
 </script>
@@ -30,7 +38,7 @@
 			</p>
 		</div>
 		<div class="card w-full max-w-md shrink-0 bg-base-100 shadow-2xl">
-			<form class="card-body" method="post" action="/register" use:enhance>
+			<form class="card-body" method="post" action="/login" use:enhance>
 				<FormControl>
 					<FormLabel forName="email" label="Email" />
 					<FormInput
